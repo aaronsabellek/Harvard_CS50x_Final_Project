@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block main %}
+    <p>
+        <div class="content-section">
+            <form method="POST" action="/login">
+                {{ form.hidden_tag() }}
+                <legend class="border-bottom mb-4">{{ legend }}</legend>
+                <p><i>Need for Text</i> is a social network designed to search und recommend texts.</p>
+                <p>Not registered yet? <a href="{{ url_for('register') }}">Sign in</a>!</p>
+                {{ wtf.form_field(form.username) }}
+                {{ wtf.form_field(form.password) }}
+                {{ wtf.form_field(form.remember) }}
+                {{ wtf.form_field(form.submit, style="margin-top: 3px; margin-right: 3px;", class="btn btn-primary") }}
+                <small class="text-muted ml-2">
+                    <a href="{{ url_for('reset_request') }}">Forgot password?</a>
+                </small>
+            </form>
+        </div>
+    </p>
+{% endblock %}

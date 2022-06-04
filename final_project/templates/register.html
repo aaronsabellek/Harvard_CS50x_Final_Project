@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+    <p>
+        <div class="content-section">
+            <form method="POST" action="/register" >
+                {{ form.hidden_tag() }}
+                <legend class="border-bottom mb-4">{{ legend }}</legend>
+                {{ wtf.form_field(form.username) }}
+                {{ wtf.form_field(form.email) }}
+                {{ wtf.form_field(form.password) }}
+                {{ wtf.form_field(form.confirm_password) }}
+                <p>Password has to be at least 8 characters long and contain at least one letter, one number and one special character</p>
+                {{ wtf.form_field(form.submit, class="btn btn-primary") }}
+            </form>
+        </div>
+    </p>
+{% endblock %}

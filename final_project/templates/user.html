@@ -1,0 +1,197 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {{ user.username }}
+{% endblock %}
+
+{% block main %}
+<!-- Infos about the user -->
+    <p>
+        <div class="media content-section">
+            <!-- User image -->
+            <img class="rounded-circle img_fluid img-thumbnail avatar" src="{{ url_for('static', filename='profile_pics/' + user.image_file) }}">
+            <!-- User info -->
+            <div class="media-body">
+                <h2 class="account-heading">{{ user.username }}</h2>
+                {% if user.info %}
+                    <p class="text-secondary">{{ user.info }}</p>
+                {% endif %}
+            </div>
+            <!-- Edit profile and (not) follow option -->
+            {% if user == current_user %}
+                <p><a href="{{ url_for('account') }}">Edit your profile</a></p>
+                {% elif not current_user.is_following(user) %}
+                <p>
+                    <form action="{{ url_for('follow', username=user.username) }}" method="post">
+                        {{ form.hidden_tag() }}
+                        {{ form.submit(value='Follow') }}
+                    </form>
+                </p>
+            {% else %}
+                <p>
+                    <form action="{{ url_for('unfollow', username=user.username) }}" method="post">
+                        {{ form.hidden_tag() }}
+                        {{ form.submit(value='Unfollow') }}
+                    </form>
+                </p>
+            {% endif %}
+            <!-- Buttons to display and filter posts and users -->
+            <button class="btn btn-primary" id="filter_posts_btn" onclick="filter_posts()">User Posts</button>
+            <button class="btn btn-primary" id="filter_follower_btn" onclick="filter_follower()">Followed</button>
+        </div>
+    </p>
+    
+    <!-- All posts (paginated) from the user and the ones he follows -->
+    <div id="posts">
+        <h3>All Posts</h3>
+        {% for post in posts.items %}
+            <article class="post media content-section rounded" id="post{{ post.id }}" onclick="expand(this)"> 
+                <div class="article-metadata rounded p-2 {{ post.task }}">
+                    <!-- User image -->
+                    <div class="cont-1">
+                        <a class="mr-2" href="/user/{{ post.author.username }}">
+                            <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
+                        </a>
+                    </div>
+                    <!-- Post info -->
+                    <div class="cont-2">
+                        <small>{{ post.task }}</small>
+                        <br>
+                        <a class="mr-2" href="/user/{{ post.author.username }}">{{ post.author.username }}</a>
+                        <br>
+                        <small>{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                    <!-- Buttons -->
+                    <div class="cont-3 hidden-div">
+                        {% if post.author == current_user %} 
+                            {% if post.task != "Info" %}
+                                <a class="btn btn-secondary btn-sm m-1" href="{{ url_for('update_post', post_id=post.id) }}">Update</a><br>
+                            {% endif %}
+                            <a class="btn btn-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</a>
+                        {% elif post.author != current_user and post.task != "Info" %} 
+                            <a class="btn btn-success btn-sm m-1" href="/contact/{{ post.id }}">Contact</a> 
+                        {% elif post.author != current_user and post.task == "Info" %} 
+                            <a class="hidden-block btn btn-success btn-sm m-1" href="mailto:honey@pot.com" onClick="this.href=this.href.replace('honey@pot.com', '{{ post.author.email }}')">Contact</a> 
+                        {% endif %}  
+                    </div>                   
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Delete Post?</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+                                    <input class="btn btn-danger" type="submit" value="Delete">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post content -->
+                <div>
+                    {% if post.task != 'Info' %}
+                        <h4 class="article-title">{{ post.title }}</h4>
+                        <p class="article-content expand" id="content_post{{ post.id }}">{{ post.content }}</p>
+                    {% else %} 
+                        <h4 class="article-title"><a href="/user/{{ post.title.split(' ')[0] }}">{{ post.title.split(' ')[0] }}</a> is following <a href="/user/{{ post.title.split(' ')[3] }}">{{ post.title.split(' ')[3] }}</a> now!</h4>
+                    {% endif %} 
+                </div>
+            </article>   
+        {% endfor %}
+        
+        <!-- Pagination -->
+        {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %} 
+            {% if page_num %} 
+                {% if posts.page == page_num %}
+                    <a class="btn btn-primary mb-4">{{ page_num }}</a>
+                {% else %} 
+                    <a class="btn btn-outline-primary mb-4" href="/user/{{ user.username }}?page={{ page_num }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %} 
+                ...
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- All posts from the user -->
+    <div id="own">
+        <h3>User Posts</h3>
+        {% for post in own %}
+            <article class="post media content-section rounded" id="post{{ post.id }}" onclick="expand(this)"> 
+                <div class="article-metadata rounded p-2 {{ post.task }}">
+                    <!-- User image -->
+                    <div class="cont-1">
+                        <a class="mr-2" href="/user/{{ post.author.username }}">
+                            <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
+                        </a>
+                    </div>
+                    <!-- Post info -->
+                    <div class="cont-2">
+                        <small>{{ post.task }}</small>
+                        <br>
+                        <a class="mr-2" href="/user/{{ post.author.username }}">{{ post.author.username }}</a>
+                        <br>
+                        <small>{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                    <!-- Buttons -->
+                    <div class="cont-3 hidden-div">
+                        {% if post.author == current_user %} 
+                            {% if post.task != "Info" %}
+                                <a class="btn btn-secondary btn-sm m-1" href="{{ url_for('update_post', post_id=post.id) }}">Update</a><br>
+                            {% endif %}
+                            <a class="btn btn-danger btn-sm m-1" href="{{ url_for('delete_post', post_id=post.id) }}">Delete</a>
+                        {% elif post.author != current_user and post.task != "Info" %} 
+                            <a class="btn btn-success btn-sm m-1" href="mailto:honey@pot.com" onClick="this.href=this.href.replace('honey@pot.com', '{{ post.author.email }}')">Contact</a> 
+                        {% elif post.author != current_user and post.task == "Info" %} 
+                            <a class="hidden-block btn btn-success btn-sm m-1" href="mailto:honey@pot.com" onClick="this.href=this.href.replace('honey@pot.com', '{{ post.author.email }}')">Contact</a> 
+                        {% endif %}  
+                    </div>                   
+                </div>
+                <!-- Post content -->
+                <div>
+                    {% if post.task != 'Info' %}
+                        <h4 class="article-title">{{ post.title }}</h4>
+                        <p class="article-content expand" id="content_post{{ post.id }}">{{ post.content }}</p>
+                    {% else %} 
+                        <h4 class="article-title"><a href="/user/{{ post.title.split(' ')[0] }}">{{ post.title.split(' ')[0] }}</a> is following <a href="/user/{{ post.title.split(' ')[3] }}">{{ post.title.split(' ')[3] }}</a> now!</h4>
+                    {% endif %} 
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    <!-- All user the user follows -->
+    <div id="followed">
+        <h3>Followed</h3>
+        {% for follower in followed %}
+            <article class="post media content-section">
+                <a class="mr-2" href="/user/{{ follower.username }}">
+                    <img style="margin-right: 10px;" class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + follower.image_file) }}">
+                </a>
+                <br>
+                <a class="mr-2" href="/user/{{ follower.username }}">{{ follower.username }}</a>
+            </article>
+        {% endfor %}
+    </div>
+
+    <!-- All user following the user -->
+    <div id="follower">
+        <h3>Follower</h3>
+        {% for follower in follower %}
+            <article class="post media content-section">
+                <a class="mr-2" href="/user/{{ follower.username }}">
+                    <img style="text-align:left" class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + follower.image_file) }}">
+                </a>
+                <br>
+                <a style="margin-left:10px;" class="mr-2" href="/user/{{ follower.username }}">{{ follower.username }}</a>
+            </article>
+        {% endfor %}
+    </div>
+{% endblock %}

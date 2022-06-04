@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <div style="margin-top: 20px;">
+        {% if posts.items[0] %}
+            <h3>Your Feed</h3>
+        {% else %} 
+            <h3>No Feed yet</h3>
+        {% endif %}
+    </div>
+
+    <!-- All posts (paginated) from current user and the ones he follows -->
+    {% for post in posts.items %}
+        <article class="post media content-section rounded" id="post{{ post.id }}" onclick="expand(this)"> 
+            <div class="article-metadata rounded p-2 {{ post.task }}">
+                <!-- User image -->
+                <div class="cont-1">
+                    <a class="mr-2" href="/user/{{ post.author.username }}">
+                        <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
+                    </a>
+                </div>
+                <!-- Post info -->
+                <div class="cont-2">
+                    <small>{{ post.task }}</small>
+                    <br>
+                    <a class="mr-2" href="/user/{{ post.author.username }}">{{ post.author.username }}</a>
+                    <br>
+                    <small>{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+                </div>
+                <!-- Buttons -->
+                <div class="cont-3 hidden-div">
+                    {% if post.author == current_user %} 
+                        {% if post.task != "Info" %}
+                            <a class="btn btn-secondary btn-sm m-1" href="{{ url_for('update_post', post_id=post.id) }}">Update</a><br>
+                        {% endif %}
+                        <a class="btn btn-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</a>
+                    {% elif post.author != current_user and post.task != "Info" %} 
+                        <a class="btn btn-success btn-sm m-1" href="/contact/{{ post.id }}">Contact</a> 
+                    {% elif post.author != current_user and post.task == "Info" %} 
+                        <a class="hidden-block btn btn-success btn-sm m-1" href="/contact/{{ post.id }}">Contact</a>
+                    {% endif %}  
+                </div>                   
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel">Delete Post?</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+                                <input class="btn btn-danger" type="submit" value="Delete">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post content -->
+            <div>
+                {% if post.task != 'Info' %}
+                    <h4 class="article-title">{{ post.title }}</h4>
+                    <p class="article-content expand" id="content_post{{ post.id }}">{{ post.content }}</p>
+                {% else %} 
+                    <h4 class="article-title"><a href="/user/{{ post.title.split(' ')[0] }}">{{ post.title.split(' ')[0] }}</a> is following <a href="/user/{{ post.title.split(' ')[3] }}">{{ post.title.split(' ')[3] }}</a> now!</h4>
+                {% endif %} 
+            </div>
+        </article>
+    {% endfor %}
+
+    <!-- Pagination -->
+    {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %} 
+        {% if page_num %} 
+            {% if posts.page == page_num %}
+                <a class="btn btn-primary mb-4">{{ page_num }}</a>
+            {% else %} 
+                <a class="btn btn-outline-primary mb-4" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a>
+            {% endif %}
+        {% else %} 
+            ...
+        {% endif %}
+    {% endfor %}
+{% endblock %}

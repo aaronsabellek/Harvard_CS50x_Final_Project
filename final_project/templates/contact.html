@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    Contact
+{% endblock %}
+
+{% block main %} 
+    <p>
+        <div class="content-section">
+            <form method="POST" action="" >
+                {{ form.hidden_tag() }}
+                <legend class="border-bottom mb-4">{{ legend }}</legend>
+                <a style="position: relative; bottom: 9px;" class="mr-2" href="/user/{{ user.username }}">
+                    <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + user.image_file) }}">
+                </a>
+                {{ wtf.form_field(form.recipient) }}
+                {{ wtf.form_field(form.post) }}
+                {{ wtf.form_field(form.message) }}
+                {{ wtf.form_field(form.submit, style="margin-top: 10px;", class="btn btn-primary") }}
+            </form>
+        </div>
+    </p>
+{% endblock %}

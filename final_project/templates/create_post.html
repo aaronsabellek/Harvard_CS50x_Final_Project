@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+    Create Post
+{% endblock %}
+
+{% block main %}
+<p>
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <legend class="border-bottom mb-4">{{ legend }}</legend>
+            {{ wtf.form_field(form.task) }}
+            {{ wtf.form_field(form.title) }}
+            {{ wtf.form_field(form.content) }}
+            {{ wtf.form_field(form.submit, style="margin-top: 8px;", class="btn btn-primary") }}
+        </form>
+    </div>
+</p>
+{% endblock %}
