@@ -4,7 +4,7 @@
 #### Description: **_Need for Text_** is a **social network** designed for its users to **search or recommend texts** in their communities.
 
 ### Requirements
-The project runs with **Python Flask**. In the _requirements.txt_ file you find the python packages you need to install. Also you have to configure the the **SQLite database** and also the **application**-settings and **Flask-Mail**-Serversettings in the _init.py_-file. If everything is set, you just have to run `python run.py` from the main directory to run the project.
+The project runs with **Python Flask**. In the _requirements.txt_ file you find the python packages you need to install. Also you have to configure the **SQLite database** and also the **application**-settings and **Flask-Mail**-Serversettings in the _init.py_-file. If everything is set, you just have to run `python run.py` from the main directory to run the project.
 
 ### Functionality
 First, you need to **sign up** (_/register_) for an account and confirm your registration via email. If you already have an account, you can **login directly** (_/login_).
